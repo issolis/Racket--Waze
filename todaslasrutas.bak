@@ -1,0 +1,33 @@
+#lang racket
+;no hace falta copiarla
+(define (length list)
+  (auxLength list 0))
+(define (auxLength list size)
+  (cond ((null? list) size)
+        (else (auxLength (cdr list) (+ 1 size) ))))
+(define (getElementByPosition position list)
+  (cond ((= 0 position) (car list))
+        (else (getElementByPosition (- position 1) (cdr list)))
+        ))
+(define (member? element list)
+  (cond ((null? list) #f)
+        ((equal? element (car list)) #t)
+        (else (member? element (cdr list)))
+         )
+  )
+;no hace falta copiarla
+
+
+(define (allRoutes graph inicialLength finalLength routes)
+  (cond ((equal? inicialLength finalLength) routes)
+  (else (allRoutes graph inicialLength (length (madeList routes graph)) (madeList routes graph)) )
+    ))
+(define (madeList routes graph newRoutes)
+  (cond ((null? routes) newRoutes)
+        (else madeList (cdr routes) graph (append newRoutes (madeNewRoutes
+                                                             (car routes)
+                                                             (neighbor
+                                                             (getElementByPosition (- (length (car routes)) 1) (car routes)) graph)
+                                                             ))) 
+    ))
+  

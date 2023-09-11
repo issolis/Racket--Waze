@@ -1,0 +1,70 @@
+#lang racket
+;no hace falta copiarla
+(define (length list)
+  (auxLength list 0))
+(define (auxLength list size)
+  (cond ((null? list) size)
+        (else (auxLength (cdr list) (+ 1 size) ))))
+(define (getElementByPosition position list)
+  (cond ((= 0 position) (car list))
+        (else (getElementByPosition (- position 1) (cdr list)))
+        ))
+(define (member? element list)
+  (cond ((null? list) #f)
+        ((equal? element (car list)) #t)
+        (else (member? element (cdr list)))
+         )
+  )
+;no hace falta copiarla ; (auxallRoutes  '((2 1 3)(3 2 1)(5 3 1)(6 3 1)(7 5 1)(8 5 1)(9 6 10)) 0 1 '((1)) '((1)))
+
+
+(define (allRoutes graph inicialNode finalNode)
+ (finalProcess
+  (getRoutes (auxallRoutes graph 0 1 (list (list inicialNode)) (list (list inicialNode)) )  inicialNode finalNode '())
+  '()))
+
+(define (auxallRoutes graph inicialLength finalLength routes lastRoutes)
+  (cond ((equal? inicialLength finalLength) routes)
+  (else(auxallRoutes graph
+                  finalLength
+                  (length (append routes (madeList lastRoutes graph '())))
+                  (append routes (madeList lastRoutes graph '()))
+                  (madeList lastRoutes graph '()) ))
+    ))
+(define (madeList routes graph newRoutes)
+  (cond ((null? routes) newRoutes)
+        (else (madeList (cdr routes) graph (append newRoutes (madeNewRoutes
+                                                             (car routes)
+                                                             (neighbor
+                                                             (getElementByPosition (- (length (car routes)) 1 ) (car routes)) graph '())
+                                                             '()
+                                                             )))) 
+    ))
+(define (madeNewRoutes lis neighbors lists)
+  (cond ((null? neighbors) lists)
+        ((not (member? (car neighbors) lis)) (madeNewRoutes lis (cdr neighbors) (append lists (list (append lis (list (car neighbors)) )) ) ))
+        (else (madeNewRoutes lis (cdr neighbors) lists))
+   ))
+(define (neighbor node graph neighbors)
+  (cond ((null? graph) neighbors)
+        ((equal? node (car (cdr (car graph)))) (neighbor node (cdr graph) (append neighbors (list (car (car graph))))) )
+        (else (neighbor node (cdr graph) neighbors))
+    ))
+(define (getRoutes routes inicialNode finalNode finalRoutes)
+  (cond ((null? routes) finalRoutes)
+        ((member? finalNode (car routes)) (getRoutes (cdr routes) inicialNode finalNode (append finalRoutes (getRoute finalNode (car routes) '()))))
+        (else (getRoutes (cdr routes) inicialNode finalNode finalRoutes))
+        ))
+(define (getRoute element lis newList)
+  (cond ((equal? element (car lis)) (list (append newList  (list (car lis)))))
+        (else (getRoute element (cdr lis) (append newList  (list (car lis))) ))
+         )
+  )
+(define (finalProcess routes finalRoutes)
+  (cond ((null? routes) finalRoutes)
+        ((not (member? (car routes) finalRoutes)) (finalProcess (cdr routes) (append finalRoutes (list (car routes))) ))
+        (else (finalProcess (cdr routes) finalRoutes))
+        ))
+
+
+  
