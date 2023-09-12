@@ -71,53 +71,22 @@
     ))
 
 ;Algoritmo para encontrar todas las rutas
-(define (allRoutes graph inicialNode finalNode)
- (finalProcess
-  (getRoutes (auxallRoutes graph 0 1 (list (list inicialNode)) (list (list inicialNode)) )  inicialNode finalNode '())
-  '()))
-
-(define (auxallRoutes graph inicialLength finalLength routes lastRoutes)
-  (cond ((equal? inicialLength finalLength) routes)
-  (else(auxallRoutes graph
-                  finalLength
-                  (length (append routes (madeList lastRoutes graph '())))
-                  (append routes (madeList lastRoutes graph '()))
-                  (madeList lastRoutes graph '()) ))
-    ))
-(define (madeList routes graph newRoutes)
-  (cond ((null? routes) newRoutes)
-        (else (madeList (cdr routes) graph (append newRoutes (madeNewRoutes
-                                                             (car routes)
-                                                             (neighbor
-                                                             (getElementByPosition (- (length (car routes)) 1 ) (car routes)) graph '())
-                                                             '()
-                                                             )))) 
-    ))
-(define (madeNewRoutes lis neighbors lists)
-  (cond ((null? neighbors) lists)
-        ((not (member? (car neighbors) lis)) (madeNewRoutes lis (cdr neighbors) (append lists (list (append lis (list (car neighbors)) )) ) ))
-        (else (madeNewRoutes lis (cdr neighbors) lists))
-   ))
-(define (neighbor node graph neighbors)
-  (cond ((null? graph) neighbors)
-        ((equal? node (car (cdr (car graph)))) (neighbor node (cdr graph) (append neighbors (list (car (car graph))))) )
-        (else (neighbor node (cdr graph) neighbors))
-    ))
-(define (getRoutes routes inicialNode finalNode finalRoutes)
-  (cond ((null? routes) finalRoutes)
-        ((member? finalNode (car routes)) (getRoutes (cdr routes) inicialNode finalNode (append finalRoutes (getRoute finalNode (car routes) '()))))
-        (else (getRoutes (cdr routes) inicialNode finalNode finalRoutes))
+(define (findAllRoutes inicialNode finalNode directionsList graph routes )
+  (cond ((equal? (findRoute inicialNode finalNode directionsList '() graph ) '()) routes )
+        (else (findAllRoutes inicialNode
+                             finalNode
+                             directionsList
+                             (newGraph graph (findRoute inicialNode finalNode directionsList '() graph ) '())
+                             (append routes (list (findRoute inicialNode finalNode directionsList '() graph )))
+                             ))
         ))
-(define (getRoute element lis newList)
-  (cond ((equal? element (car lis)) (list (append newList  (list (car lis)))))
-        (else (getRoute element (cdr lis) (append newList  (list (car lis))) ))
-         )
-  )
-(define (finalProcess routes finalRoutes)
-  (cond ((null? routes) finalRoutes)
-        ((not (member? (car routes) finalRoutes)) (finalProcess (cdr routes) (append finalRoutes (list (car routes))) ))
-        (else (finalProcess (cdr routes) finalRoutes))
-        ))
+(define (newGraph graph route newgraph)
+  (cond ((equal? route '()) graph)
+        ((null? graph) newGraph)
+        ((and (equal? (car (car graph)) (getElementByPosition (- (length route) 2) route))
+              (equal? (car(cdr (car graph))) (getElementByPosition (- (length route) 3) route))) (append newgraph (cdr graph)) )
+        (else (newGraph (cdr graph) route (append newgraph (list (car graph)) ) ) )
+    ))
 
 (define (length list)
   (auxLength list 0))
@@ -166,19 +135,14 @@
         )
   )
 
-(define (messageManagement message option)
-   (cond ((equal? option 1) (format "~a" (findRoute (getSeccion message 1)
+(define (messageManagement message)
+   (format "~a" (findRoute (getSeccion message 1)
              (getSeccion message 2)
              (list (append (list (getSeccion message 1)) (list (getSeccion message 1)) '(0) ))
              '()
              
-             (madeGraph (getSeccion message 3)))))
-         (else (format "~a" (allRoutes (madeGraph (getSeccion message 3))
-                          (getSeccion message 1)
-                          (getSeccion message 2) )))
-                            
-         ))
-
+             (madeGraph (getSeccion message 3))))
+)
 
 ;servidor
 (require racket/tcp)
@@ -192,12 +156,11 @@
   
   ; Envía una respuesta al cliente
   (displayln "Enviando respuesta al cliente...")
-  (write (messageManagement message 1) client-output) ; Respuesta predeterminada
-  (displayln (string-append "Todas las rutas son: " (messageManagement message 2)))
+  (write (messageManagement message) client-output) ; Respuesta predeterminada
+  
   (flush-output client-output)
   
   (displayln "Conexión cerrada.")
-  
   
   (close-input-port client-input)
   (close-output-port client-output))
