@@ -1,7 +1,7 @@
 #lang racket
-
+;--------------------------------conexión con el servidor--------------------------------
 (require racket/tcp)
-
+;Esta función envía un mensaje al servidor
 (define (start message)
   (define-values (client-input client-output) (tcp-connect "127.0.0.1" 8080))
   (displayln "Conectado al servidor.")
@@ -18,7 +18,7 @@
   
   (close-input-port client-input)
   (close-output-port client-output))
-%%adicional
+
 
 
 
