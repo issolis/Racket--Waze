@@ -16,7 +16,6 @@
   
   ; Lee la respuesta del servidor
   (define response (read-line client-input))
-  (set! server-response response)
   (displayln (string-append "Respuesta del servidor: " response))
   
   (close-input-port client-input)
@@ -51,11 +50,6 @@
        [style '(border)]))
 
 (define start-finish-panel
-  (new vertical-panel%
-       [parent node-panel]
-       [style '(border)]))
-
-(define result-panel
   (new vertical-panel%
        [parent node-panel]
        [style '(border)]))
@@ -147,7 +141,6 @@
 
 (define graph-material'()) ;Global list where the graph will be stored
 (define node-positions '((80 230) (190 110) (300 10) (410 110) (520 230) (410 325) (300 440) (190 325)))
-(define server-response "")
 
 ;====== Set connections & weights ======
 (define (check-city cities city)
@@ -184,13 +177,9 @@
 (define cities-list '()) ;Global list to store the cities provided by the user
 
 (define (create-city-field)
-  (cond (
-         (< (length cities-list) 8)
-         (define city-field(new text-field%[parent set-city-panel] [label #f]))
-         (set! cities-list (cons city-field cities-list))
-         city-field)
-        )
-  )
+  (define city-field(new text-field%[parent set-city-panel] [label #f]))
+  (set! cities-list (cons city-field cities-list))
+  city-field)
 
 (define (get-cities-list)
   (for-each
@@ -218,6 +207,28 @@
         (lambda (button event)
           (set! circle-shown? #t)
           (send graphical-graph refresh))])) ; Trigger a canvas refresh
+
+;====== Capture final response ======
+;(define graph-arris '((3 1 5) (3 2 3) (2 1 1)))
+
+(define (arrises-to-string nodes)
+  (string-join
+   (map
+    (lambda (lst)
+      (apply format "(~a ~a ~a)" lst))nodes)"")
+  )
+
+(define (best-path)
+  (let (
+         (arrises (arrises-to-string graph-material))
+         (start-node (number->string(check-city (reverse cities-list) (send start-field get-value))))
+         (finish-node (number->string(check-city (reverse cities-list) (send finish-field get-value))))
+         (res '())
+        )
+    (set! res(string-append " " start-node " " finish-node " " arrises " "))
+    (displayln res)
+    (start res))
+    )
 
 ;====== SetStreet Section ======
 (define set-street-section-label
@@ -319,80 +330,13 @@
        [callback
         (lambda (button event) (best-path))]))
 
-
-;====== Capture final response ======
-;(define graph-arris '((3 1 5) (3 2 3) (2 1 1)))
-
-(define (translate-res str-res)
-  (define res-list '())
-  (for([i server-response])
-    (for ([j (length cities-list)])
-      (cond ((equal? i (number->string j))
-             res-list
-             ))
-      )))
-
-
-      ;(cond ((equal?(first str-res))
-             ;)))
-
-;(for([i (length cities-list)])
-;                (set! x-pos (first (first copy-node-positions)))
-;                (set! y-pos (first(rest (first copy-node-positions))))
-;                (send dc set-brush "red" 'solid) ; Set the fill color
-;                (send dc draw-ellipse x-pos y-pos (* 2 circle-radius) (* 2 circle-radius))
-;                (set! copy-node-positions (rest copy-node-positions))
-;                )
-
-(define (arrises-to-string nodes)
-  (string-join
-   (map
-    (lambda (lst)
-      (apply format "(~a ~a ~a)" lst))nodes)"")
-  )
-
-(define (best-path)
-  (let (
-         (arrises (arrises-to-string graph-material))
-         (start-node (number->string(check-city (reverse cities-list) (send start-field get-value))))
-         (finish-node (number->string(check-city (reverse cities-list) (send finish-field get-value))))
-         (res '())
-         ;()
-        )
-    (set! res(string-append " " start-node " " finish-node " " arrises " "))
-    (displayln res)
-    (start res)
-    
-    
-    (send result-label set-label server-response))
-    )
-
-
-;======
-
-(define result-row
-  (new horizontal-panel%
-       [parent result-panel]))
-
-(define tag-result-label
-  (new message%
-       [parent result-row]
-       [label "Best Path: "]))
-
-(define result-label
-  (new message%
-       [parent result-row]
-       [min-width 100]
-       [label "..."]))
-
-
 ;====== Create Graph ======
-;(define create-btn
-;  (new button%
-;       [label "Create graph"]
-;       [parent window]
-;       [callback
-;        (lambda (button event) (get-cities-list))]))
+(define create-btn
+  (new button%
+       [label "Create graph"]
+       [parent window]
+       [callback
+        (lambda (button event) (get-cities-list))]))
 
 
 (send window show #t)
